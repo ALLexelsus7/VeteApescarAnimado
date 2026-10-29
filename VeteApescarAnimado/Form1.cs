@@ -180,6 +180,20 @@ namespace VeteApescarAnimado
             return new Point(pantallaX, pantallaY);
         }
 
+        //Funcion para obtener el color actual del lienzo 
+        private Color ObtenerColorActualLienzo(int x, int y)
+        {
+            Point puntoLienzo = ConvertirCoordenada(x, y);
+
+            if (puntoLienzo.X < 0 || puntoLienzo.X >= mapaBits.Width ||
+                puntoLienzo.Y < 0 || puntoLienzo.Y >= mapaBits.Height)
+            {
+                throw new ArgumentOutOfRangeException(nameof(x), "El punto está fuera del lienzo.");
+            }
+
+            return mapaBits.GetPixel(puntoLienzo.X, puntoLienzo.Y);
+        }
+
         // Funcion para dibujar un pixel 'seguro' en el bitmap, comprobanto limite de pantalla
         void DibujarPixel(Bitmap btmp, int x, int y, Color color)
         {
@@ -305,22 +319,54 @@ namespace VeteApescarAnimado
             }
         }
 
+        //Funcion para dibujar un arbol (de abajo hacia arriba)
+        private void DibujarArbol(Graphics g, int x, int y)
+        {
+            DibujarLinea(g, x, y, x, y + 20, Color.Brown); //tronco
+            DibujarLinea(g, x - 10, y + 5, x + 10, y + 5, Color.FromArgb(127, 148, 134)); //hojas 1
+            DibujarLinea(g, x - 8, y + 8, x + 8, y + 8, Color.FromArgb(127, 148, 134)); //hojas 2
+            DibujarLinea(g, x - 6, y + 11, x + 6, y + 11, Color.FromArgb(127, 148, 134)); //hojas 3
+            DibujarLinea(g, x - 4, y + 14, x + 4, y + 14, Color.FromArgb(127, 148, 134)); //hojas 4
+            DibujarLinea(g, x - 2, y + 17, x + 2, y + 17, Color.FromArgb(127, 148, 134)); //hojas 5
+            DibujarLinea(g, x - 1, y + 20, x + 1, y + 20, Color.FromArgb(127, 148, 134)); //hojas 6                     
+        }
+
+        //Funcion para dibujar una montania (de izq a derecha)
+        private void DibujarMontania(Graphics g, int x, int y, string variante)
+        {
+            if (variante == "variante1")
+            {
+                DibujarLinea(g, x, y, x + 100, y + 30, Color.Gainsboro); //lado izq
+                DibujarLinea(g, x + 100, y + 30, x + 200, y, Color.Gainsboro); //lado der
+                DibujarLinea(g, x, y, x + 200, y, Color.Transparent); //base
+                //picos
+                DibujarLinea(g, x + 80, y + 25, x + 90, y + 23, Color.Gainsboro); //inicio
+                DibujarLinea(g, x + 90, y + 23, x + 92, y + 20, Color.Gainsboro);
+                DibujarLinea(g, x + 92, y + 20, x + 100, y + 23, Color.Gainsboro);
+                DibujarLinea(g, x + 100, y + 23, x + 110, y + 20, Color.Gainsboro);
+                DibujarLinea(g, x + 110, y + 20, x + 120, y + 25, Color.Gainsboro); //fin a la misma altura de inicio
+            }
+            else if(variante == "variante2")
+            {
+                DibujarLinea(g, x, y-3, x + 100, y + 30, Color.Gainsboro); //lado izq
+                DibujarLinea(g, x + 100, y + 30, x + 200, y, Color.Gainsboro); //lado der
+                DibujarLinea(g, x, y-3, x + 200, y, Color.Transparent); //base
+                //picos
+                DibujarLinea(g, x + 80, y + 25, x + 90, y + 23, Color.Gainsboro); //inicio
+                DibujarLinea(g, x + 90, y + 23, x + 92, y + 20, Color.Gainsboro);
+                DibujarLinea(g, x + 92, y + 20, x + 100, y + 23, Color.Gainsboro);
+                DibujarLinea(g, x + 100, y + 23, x + 110, y + 20, Color.Gainsboro);
+                DibujarLinea(g, x + 110, y + 20, x + 120, y + 25, Color.Gainsboro); //fin a la misma altura de inicio                                                                                            
+            }   
+        }
+
         //∭•••••••••••••••••••••••••••••••••••••••••••••••••∭
         // Funcion principal para dibujar la escena ESTATICA
         //∭•••••••••••••••••••••••••••••••••••••••••••••••••∭
         private void GenerarPaisaje()
         {
             using (Graphics g = Graphics.FromImage(mapaBits))
-            {
-
-                //Punto master y obtencion del color original que será reemplazado 
-                //para rellenar con cascada
-                Point puntoMaster = ConvertirCoordenada(10, 10);              
-                Color colorOriginalLienzo = mapaBits.GetPixel(
-                     puntoMaster.X,
-                     puntoMaster.Y
-                );
-
+            {               
                 //MAR
                 // Area del mar
                 Point esquinaSuperiorIzquierda = ConvertirCoordenada(-600, 135);
@@ -345,47 +391,17 @@ namespace VeteApescarAnimado
                     LinearGradientMode.Vertical))
                 {
                     g.FillRectangle(brochaDegradada, rectanguloMar);
-                }               
+                }
 
                 //MONTANIAS (de izq a der)
-                //1
-                DibujarLinea(g, -600, 260, -500, 290 ,Color.Gainsboro);
-                DibujarLinea(g, -500, 290, -400, 260, Color.Gainsboro);
-                    //picos
-                    DibujarLinea(g, -520, 285, -510, 283, Color.Gainsboro);
-                    DibujarLinea(g, -510, 283, -508, 280, Color.Gainsboro);
-                    DibujarLinea(g, -508, 280, -500, 283, Color.Gainsboro);
-                    DibujarLinea(g, -500, 283, -490, 280, Color.Gainsboro);
-                    DibujarLinea(g, -490, 280, -480, 285, Color.Gainsboro);
-                //2
-                DibujarLinea(g, -300, 257, -200, 290, Color.Gainsboro);
-                DibujarLinea(g, -200, 290, -100, 263, Color.Gainsboro);
-                    //picos
-                    DibujarLinea(g, -220, 285, -210, 283, Color.Gainsboro);
-                    DibujarLinea(g, -210, 283, -208, 280, Color.Gainsboro);
-                    DibujarLinea(g, -208, 280, -200, 283, Color.Gainsboro);
-                    DibujarLinea(g, -200, 283, -190, 280, Color.Gainsboro);
-                    DibujarLinea(g, -190, 280, -180, 285, Color.Gainsboro);
-                //3
-                DibujarLinea(g, 100, 258, 200, 290, Color.Gainsboro);
-                DibujarLinea(g, 200, 290, 300, 262, Color.Gainsboro);
-                    //picos
-                    DibujarLinea(g, 220, 285, 210, 283, Color.Gainsboro);
-                    DibujarLinea(g, 210, 283, 208, 280, Color.Gainsboro);
-                    DibujarLinea(g, 208, 280, 200, 283, Color.Gainsboro);
-                    DibujarLinea(g, 200, 283, 190, 280, Color.Gainsboro);
-                    DibujarLinea(g, 190, 280, 180, 285, Color.Gainsboro);
-                //4
-                DibujarLinea(g, 400, 260, 500, 290, Color.Gainsboro);
-                DibujarLinea(g, 500, 290, 600, 260, Color.Gainsboro);
-                    //picos
-                    DibujarLinea(g, 520, 285, 510, 283, Color.Gainsboro);
-                    DibujarLinea(g, 510, 283, 508, 280, Color.Gainsboro);
-                    DibujarLinea(g, 508, 280, 500, 283, Color.Gainsboro);
-                    DibujarLinea(g, 500, 283, 490, 280, Color.Gainsboro);
-                    DibujarLinea(g, 490, 280, 480, 285, Color.Gainsboro);
-                //HORIZONTE (base de montanias)
-                //DibujarLinea(g, -600, 260, 600, 260, Color.Gainsboro);
+                //izq
+                DibujarMontania(g, -600, 260, "variante1"); //izq
+                DibujarMontania(g, -300, 260, "variante2"); //der
+                //der
+                DibujarMontania(g, 100, 260, "variante2"); //izq
+                DibujarMontania(g, 400, 260, "variante1"); //der
+                
+                //HORIZONTE (base de montanias)               
                 DibujarLineaOndulante(g, -600, 600, 260, amplitud: 3, longitudOnda: 400,
                     Color.FromArgb(255, 130, 190, 240), 2.5f);
                 //Puntos para relleno
@@ -403,6 +419,8 @@ namespace VeteApescarAnimado
                     new Point(200, 289),
                     new Point(500, 289)
                 };
+                //Obtengo el color del lienzo en cierto punto para rellenar con cascada
+                Color colorOriginalLienzo = ObtenerColorActualLienzo(0, 349);
                 foreach (Point pCartesiano in puntosInicioMontanias)
                 {
                     Point pPantalla = ConvertirCoordenada(pCartesiano.X, pCartesiano.Y);
@@ -422,58 +440,25 @@ namespace VeteApescarAnimado
                 RellenarCascada(mapaBits, puntoIniciocielo.X, puntoIniciocielo.Y,
                     colorOriginalLienzo, Color.FromArgb(2, 101, 177));
 
-                //ARBOLITOS
-                //izq
-                //1
-                    DibujarLinea(g, -350,250, -350, 270, Color.Brown);
-                    DibujarLinea(g, -360, 255, -340, 255, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -358, 258, -342, 258, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -356, 261, -344, 261, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -354, 264, -346, 264, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -352, 267, -348, 267, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -351, 270, -349, 270, Color.FromArgb(127, 148, 134));
-                //2
-                    DibujarLinea(g, -400, 240, -400, 260, Color.Brown);
-                    DibujarLinea(g, -410, 245, -390, 245, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -408, 248, -392, 248, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -406, 251, -394, 251, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -404, 254, -396, 254, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -402, 257, -398, 257, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -401, 260, -399, 260, Color.FromArgb(127, 148, 134));
-                //3
-                    DibujarLinea(g, -300, 240, -300, 260, Color.Brown);
-                    DibujarLinea(g, -310, 245, -290, 245, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -308, 248, -292, 248, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -306, 251, -294, 251, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -304, 254, -296, 254, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -302, 257, -298, 257, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, -301, 260, -299, 260, Color.FromArgb(127, 148, 134));
-                //der
-                //1
-                    DibujarLinea(g, 350, 250, 350, 270, Color.Brown);
-                    DibujarLinea(g, 360, 255, 340, 255, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 358, 258, 342, 258, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 356, 261, 344, 261, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 354, 264, 346, 264, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 352, 267, 348, 267, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 351, 270, 349, 270, Color.FromArgb(127, 148, 134));
-                //2
-                    DibujarLinea(g, 400, 240, 400, 260, Color.Brown);
-                    DibujarLinea(g, 410, 245, 390, 245, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 408, 248, 392, 248, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 406, 251, 394, 251, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 404, 254, 396, 254, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 402, 257, 398, 257, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 401, 260, 399, 260, Color.FromArgb(127, 148, 134));
-                //3
-                    DibujarLinea(g, 300, 240, 300, 260, Color.Brown);
-                    DibujarLinea(g, 310, 245, 290, 245, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 308, 248, 292, 248, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 306, 251, 294, 251, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 304, 254, 296, 254, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 302, 257, 298, 257, Color.FromArgb(127, 148, 134));
-                    DibujarLinea(g, 301, 260, 299, 260, Color.FromArgb(127, 148, 134));
+                //HIELO
+                DibujarLinea(g, -600, 150, 600, 150, Color.Black);
+                DibujarLinea(g, -600, 135, 600, 135, Color.Black);
+                Point puntoInicioHielo = ConvertirCoordenada(599, 155);
+                Point puntoInicioBordeHielo = ConvertirCoordenada(599, 140);
+                RellenarCascada(mapaBits, puntoInicioHielo.X, puntoInicioHielo.Y,
+                                colorOriginalLienzo, Color.FromArgb(239, 255, 254));
+                RellenarCascada(mapaBits, puntoInicioBordeHielo.X, puntoInicioBordeHielo.Y,
+                                colorOriginalLienzo, Color.FromArgb(239, 255, 254));
 
+                //ARBOLITOS
+                //izq                
+                DibujarArbol(g, -350, 250); //medio
+                DibujarArbol(g, -400, 240); //izq
+                DibujarArbol(g, -300, 240); //derecha
+                //der
+                DibujarArbol(g, 350, 250); //medio
+                DibujarArbol(g, 400, 240); //izq
+                DibujarArbol(g, 300, 240); //derecha
 
                 //HOYO de pesca               
                 Point[] puntosHoyo = {
@@ -489,7 +474,7 @@ namespace VeteApescarAnimado
                     ConvertirCoordenada(0, 180),
                     ConvertirCoordenada(50, 170),
                     ConvertirCoordenada(0, 180),
-                    ConvertirCoordenada(-50, 170)
+                    //ConvertirCoordenada(-50, 170) ESTE NO HACE FALTA YA QUE ClosedCurve CONECTA DIRECTO AL PUNTO INICIAL
                 };
                 //BROCHAs para relleno y LAPIZ para bordes              
                 using (SolidBrush brochaCeleste = new SolidBrush(Color.FromArgb(255, 183, 211, 233)))
@@ -497,9 +482,8 @@ namespace VeteApescarAnimado
                 {
                     // Primeras capas de relleno                                
                     g.FillClosedCurve(brochaCeleste, puntosHoyo);
-
                     // Segundas capas de contorno                 
-                    g.DrawCurve(lapizNegro2, puntosHoyo);
+                    g.DrawClosedCurve(lapizNegro2, puntosHoyo);
                 }             
 
                 //LATA
@@ -507,8 +491,7 @@ namespace VeteApescarAnimado
                     ConvertirCoordenada(190, 170),
                     ConvertirCoordenada(190, 190),
                     ConvertirCoordenada(205, 190),
-                    ConvertirCoordenada(205, 170),
-                    //ConvertirCoordenada(190, 170) ESTE NO HACE FALTA YA QUE SE CONECTA DIRECTO AL PUNTO INICIAL
+                    ConvertirCoordenada(205, 170),                    
                 };
                 Point ptAbertura = ConvertirCoordenada(188, 192);
                 using (SolidBrush brochaGris = new SolidBrush(Color.DarkGray))
@@ -518,7 +501,6 @@ namespace VeteApescarAnimado
                     // Relleno y contorno principal
                     g.FillClosedCurve(brochaGris, puntosLata);
                     g.DrawClosedCurve(lapizNegro1, puntosLata);
-
                     //Abertura superior                  
                     g.FillEllipse(brochaOscura, ptAbertura.X, ptAbertura.Y, 19, 7);
                     g.FillEllipse(brochaOscura, ptAbertura.X + 15, ptAbertura.Y - 15, 7, 19);
@@ -528,7 +510,7 @@ namespace VeteApescarAnimado
                 //PINGUINO               
                 // Arreglos de puntos para formar figuras            
                 Point[] puntosCuerpoP = {//150   180
-                    ConvertirCoordenada(pinguX, pinguY),
+                    ConvertirCoordenada(150, 180),
                     ConvertirCoordenada(pinguX-20,pinguY+5),
                     ConvertirCoordenada(pinguX-35, pinguY+30),
                     ConvertirCoordenada(pinguX-20, pinguY+80),
@@ -647,6 +629,8 @@ namespace VeteApescarAnimado
                     new Point(-155, 180),
                     new Point(-145, 180)
                 };
+                //Actualizo punto del color del lienzo para rellenar la caja
+                colorOriginalLienzo = ObtenerColorActualLienzo(-599, 160);
                 foreach (Point pCartesiano in puntosInicioCaja)
                 {
                     // Convierte la coordenada cartesiana a coordenada de pantalla (Bitmap)
@@ -657,17 +641,7 @@ namespace VeteApescarAnimado
                 }
                 Point puntoInicioCajaI = ConvertirCoordenada(-150, 235);
                 RellenarCascada(mapaBits, puntoInicioCajaI.X, puntoInicioCajaI.Y,
-                            colorOriginalLienzo, Color.FromArgb(255, 77, 69, 49));
-
-                //HIELO
-                DibujarLinea(g, -600, 150, 600, 150, Color.Black);
-                DibujarLinea(g, -600, 135, 600, 135, Color.Black);
-                Point puntoInicioHielo = ConvertirCoordenada(599, 155);
-                Point puntoInicioBordeHielo = ConvertirCoordenada(599, 140);
-                RellenarCascada(mapaBits, puntoInicioHielo.X, puntoInicioHielo.Y,
-                                colorOriginalLienzo, Color.FromArgb(239, 255, 254));
-                RellenarCascada(mapaBits, puntoInicioBordeHielo.X, puntoInicioBordeHielo.Y,
-                                colorOriginalLienzo, Color.FromArgb(239, 255, 254));
+                            colorOriginalLienzo, Color.FromArgb(255, 77, 69, 49));               
             }
            
         }

@@ -110,6 +110,7 @@ namespace VeteApescarAnimado
             }
 
             // Pre-calcular la máscara de recorte del hielo para evitar lag
+            // (usado para el efecto de esconder el bait por detras del hielo)
             Point inicioHielo = ConvertirCoordenada(-20, 160);
             Point finHielo = ConvertirCoordenada(20, 135);
             int altoHielo = finHielo.Y - inicioHielo.Y;
@@ -143,7 +144,7 @@ namespace VeteApescarAnimado
             anzueloY = origenY - posicionY;
         }
 
-        //Metodo para mover los objetos del mar
+        //Metodo para mover los objetos dinamicos
         private void TimerAnimacion_Tick(object sender, EventArgs e)
         {
             // Mover izq o derecha
@@ -981,6 +982,7 @@ namespace VeteApescarAnimado
             PaintBarrel(g, barrelX, barrelY);
             PaintBoot(g, bootX, bootY);
             // Aplica la máscara pre-calculada en Form1 (con cero lag)
+            // (para el efecto del bait detras del hielo)
             System.Drawing.Drawing2D.GraphicsState estadoOriginal = g.Save();
             g.Clip = regionRecorteHilo;
             PaintFRod(g, anzueloX, anzueloY);
@@ -988,7 +990,7 @@ namespace VeteApescarAnimado
 
         }
 
-        // Se ejecuta solito cuando el se cierra la ventana
+        // Se ejecuta solito cuando se cierra la ventana
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);

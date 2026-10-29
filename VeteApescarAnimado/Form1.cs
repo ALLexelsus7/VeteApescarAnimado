@@ -1,14 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Printing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Media;
 
@@ -18,18 +11,29 @@ namespace VeteApescarAnimado
 {
     public partial class Form1 : Form
     {
+        //Valores fijos globales
+        private const int AnchoLienzo = 1200;
+        private const int AltoLienzo = 700;
+        private const int MargenLienzo = 20;
+        private const int IntervaloAnimacionMs = 30;
+        private const int LimiteMouseSuperior = 125;
+        private const int LimiteMouseInferior = 650;
+        private const int LimiteAvionX = 650;
+        private const int LimitePezX = 600;
+        private const int LimiteBarrilX = 700;
+        private const int LimiteBotaX = 700;
 
         // Objeto del lienzo donde se proyecta la escena final
-        private Panel panelLienzo;
+        private readonly Panel panelLienzo; //readonly porque no cambiaran
 
         // Objeto para la matriz de pixeles (buffer de dibujo)
-        private Bitmap mapaBits;
+        private readonly Bitmap mapaBits;
 
         //Para la musica (? es que puede ser null)
-        private SoundPlayer? reproductorAudio;
+        private readonly SoundPlayer? reproductorAudio;
 
         //Para el timer de veces que se reejecuta la imagen para animacion
-        private System.Windows.Forms.Timer timerAnimacion;
+        private readonly System.Windows.Forms.Timer timerAnimacion;
         // Posicion inicial de algunos objetos movibles y estaticos
         private int tinyPlaneX = -650; // fuera de la pantalla por la izquierda
         private int tinyPlaneY = 330;
@@ -47,7 +51,7 @@ namespace VeteApescarAnimado
         private int pinguX = 150;
         private int pinguY = 180;
 
-        private Region regionRecorteHilo;
+        private readonly Region regionRecorteHilo;
 
         public Form1()
         {
@@ -62,10 +66,12 @@ namespace VeteApescarAnimado
             this.BackColor = Color.FromArgb(255, 0, 129, 204);
             // Crear el lienzo y configurarlo dentro del form
             panelLienzo = new Panel();
-            panelLienzo.Size = new Size(1200, 700);
+            panelLienzo.Size = new Size(AnchoLienzo, AltoLienzo);
             panelLienzo.BackColor = Color.White;
             //Ventana que ajusta su área INTERNA para alojar el panel con un margen uniforme (ejemplo: 20px)
-            this.ClientSize = new Size(1200 + (20 * 2), 700 + (20 * 2));
+            this.ClientSize = new Size(
+                AnchoLienzo + (MargenLienzo * 2),
+                AltoLienzo + (MargenLienzo * 2));
             //Centramos el panel exactamente dentro del ClientSize del formulario
             int xCentro = (this.ClientSize.Width - panelLienzo.Width) / 2;
             int yCentro = (this.ClientSize.Height - panelLienzo.Height) / 2;
@@ -73,7 +79,7 @@ namespace VeteApescarAnimado
             // Agregarlo al formulario
             this.Controls.Add(panelLienzo);
             //Instanciamos el Bitmap una sola vez
-            mapaBits = new Bitmap(panelLienzo.Width, panelLienzo.Height);
+            mapaBits = new Bitmap(AnchoLienzo, AltoLienzo);
             //Genera el paisaje estatico completo antes de mostrar nada
             GenerarPaisaje();
 
@@ -90,7 +96,7 @@ namespace VeteApescarAnimado
 
             // Config del Timer para animacion continua
             timerAnimacion = new System.Windows.Forms.Timer();
-            timerAnimacion.Interval = 30; // Se ejecuta cada 30 ms (aprox. 30 FPS)
+            timerAnimacion.Interval = IntervaloAnimacionMs; // Se ejecuta cada 30 ms (aprox. 30 FPS)
             timerAnimacion.Tick += TimerAnimacion_Tick;
             timerAnimacion.Start();
 
@@ -122,21 +128,19 @@ namespace VeteApescarAnimado
         }
 
         //Metodo para el evento del mouse del fishing rod
-        private void PanelLienzo_MouseMove(object sender, MouseEventArgs e)
+        private void PanelLienzo_MouseMove(object? sender, MouseEventArgs e)
         {
             // Actualiza las coordenadas con la pos. actual del cursor
             int posicionY = e.Y;
 
             //Limites en Y
-            int limSup = 125;
-            int limInf = 650;
-            if (posicionY < limSup)
+            if (posicionY < LimiteMouseSuperior)
             {
-                posicionY = limSup;
+                posicionY = LimiteMouseSuperior;
             }
-            else if (posicionY > limInf)
+            else if (posicionY > LimiteMouseInferior)
             {
-                posicionY = limInf;
+                posicionY = LimiteMouseInferior;
             }
 
             //Convierte coord de pantalla a cartesiana -> guarda la coord en la variable global
@@ -145,7 +149,7 @@ namespace VeteApescarAnimado
         }
 
         //Metodo para mover los objetos dinamicos
-        private void TimerAnimacion_Tick(object sender, EventArgs e)
+        private void TimerAnimacion_Tick(object? sender, EventArgs e)
         {
             // Mover izq o derecha
             pezAmarilloX += velocidad;
@@ -155,15 +159,15 @@ namespace VeteApescarAnimado
             tinyPlaneX += velocidad - 4;
 
             // Si sale del límite, reiniciarlo
-            if (tinyPlaneX > 650) tinyPlaneX = -650;
+            if (tinyPlaneX > LimiteAvionX) tinyPlaneX = -LimiteAvionX;
 
-            if (pezAmarilloX > 600) pezAmarilloX = -600;         
+            if (pezAmarilloX > LimitePezX) pezAmarilloX = -LimitePezX;
 
-            if (pezGrisX < -600) pezGrisX = 600;
+            if (pezGrisX < -LimitePezX) pezGrisX = LimitePezX;
 
-            if (barrelX > 700) barrelX = -700;
+            if (barrelX > LimiteBarrilX) barrelX = -LimiteBarrilX;
 
-            if (bootX < -700) bootX = 700;
+            if (bootX < -LimiteBotaX) bootX = LimiteBotaX;
 
             // Vuelve a ejecutar DibujarLienzo
             panelLienzo.Invalidate();
@@ -964,7 +968,7 @@ namespace VeteApescarAnimado
         //∭••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••∭
         // Funcion para dibujar el lienzo FINAL (primero lo estatico y luego lo dinamico)
         //∭••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••∭
-        private void DibujarLienzo(object sender, PaintEventArgs e)
+        private void DibujarLienzo(object? sender, PaintEventArgs e)
         {
 
             Graphics g = e.Graphics;
@@ -994,8 +998,18 @@ namespace VeteApescarAnimado
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-            //Buena practica quitar el audio
+            if (e.Cancel)
+            {
+                return;
+            }
+
+            //Para y elimina recursos y procesos
+            timerAnimacion.Stop();
+            timerAnimacion.Dispose();
             reproductorAudio?.Stop();
+            reproductorAudio?.Dispose();
+            regionRecorteHilo.Dispose();
+            mapaBits.Dispose();
         }
     }
 }
